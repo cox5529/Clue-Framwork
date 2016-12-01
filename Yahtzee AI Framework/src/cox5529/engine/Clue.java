@@ -125,16 +125,18 @@ public class Clue {
 						} else {
 							removePlayer(i, "False accusation.");
 							i--;
+							for(int j = 0; j < players.length; j++) {
+								players[j].accusation(i + 1, player, weap, room);
+							}
 							continue;
 						}
 					} else {
 						ArrayList<Integer> bad = new ArrayList<Integer>();
 						for(int j = 0; j < players.length; j++) {
-							if(player >= playerBase) {
+							if(player >= playerBase && players.length > player - playerBase) {
 								int[] toLoc = getRoomLocation(room);
-								System.out.println(Arrays.toString(toLoc));
 								players[j].sendMove(player - playerBase, toLoc);
-								int id = players[i].getId();
+								int id = players[player - playerBase].getId();
 								int[] cur = getCurrentPos(id);
 								pLocs[cur[1]][cur[0]] -= Math.pow(2, id);
 								pLocs[toLoc[0]][toLoc[1]] += Math.pow(2, id);

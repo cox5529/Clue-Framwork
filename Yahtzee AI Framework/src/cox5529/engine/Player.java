@@ -81,6 +81,10 @@ public class Player {
 		send("Card " + type + " " + id);
 	}
 	
+	public void accusation(int player, int p, int w, int r) {
+		send("Accusation " + player + " " + p + " " + w + " " + r);
+	}
+	
 	public int disprove(int player, int p, int w, int r, boolean send) {
 		int re = -1;
 		if(send) {
