@@ -142,19 +142,35 @@ public class Clue {
 								pLocs[toLoc[0]][toLoc[1]] += Math.pow(2, id);
 							}
 							if(j != i) {
-								int incor = players[j].disprove(i, player, weap, room, true);
-								if(incor == 0) {
-									players[i].showDisprove(j, 0, player);
-								} else if(incor == 1) {
-									players[i].showDisprove(j, 1, weap);
-								} else if(incor == 2) {
-									players[i].showDisprove(j, 2, room);
-								} else if(incor == -2) {
-									bad.add(j);
-								}
+								players[j].guess(i, player, weap, room);
 							}
 						}
-						for(int j = 0; j < bad.size(); j++) {
+						int j = i + 1;
+						if(j == players.length)
+							j = 0;
+						while(j != i) {
+							int incor = players[j].disprove(i, player, weap, room, true);
+							if(incor == 0) {
+								players[i].showDisprove(j, 0, player);
+							} else if(incor == 1) {
+								players[i].showDisprove(j, 1, weap);
+							} else if(incor == 2) {
+								players[i].showDisprove(j, 2, room);
+							} else if(incor == -2) {
+								bad.add(j);
+							}
+							if(incor != -1 && incor != -2) {
+								for(int k = 0; k < players.length; k++) {
+									if(k != j && k != i)
+										players[k].disproved(j);
+								}
+								break;
+							}
+							j++;
+							if(j == players.length)
+								j = 0;
+						}
+						for(j = 0; j < bad.size(); j++) {
 							removePlayer(bad.get(j), "Gave bad response to \"Disprove\" command.");
 							if(i > j) {
 								i--;

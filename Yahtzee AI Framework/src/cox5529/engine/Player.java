@@ -29,6 +29,17 @@ public class Player {
 		return decks;
 	}
 	
+	private String readLine() {
+		try {
+			String in = out.readLine();
+			System.out.println(id + ": " + in);
+			return in;
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	private boolean send(String data) {
 		try {
 			System.out.println(data);
@@ -47,27 +58,23 @@ public class Player {
 	
 	public void initialize(int id, int[][] rooms, int playerCount, ArrayList<String> roomList, ArrayList<String> weaponList) {
 		this.id = id;
-		try {
-			send("ID " + id);
-			send("Playercount " + playerCount);
-			send("Board " + rooms.length + " " + rooms[0].length);
-			for(int i = 0; i < rooms.length; i++) {
-				String w = "";
-				for(int j = 0; j < rooms[i].length; j++) {
-					w += rooms[i][j] + (j == rooms[i].length - 1 ? "": " ");
-				}
-				send(w);
+		send("ID " + id);
+		send("Playercount " + playerCount);
+		send("Board " + rooms.length + " " + rooms[0].length);
+		for(int i = 0; i < rooms.length; i++) {
+			String w = "";
+			for(int j = 0; j < rooms[i].length; j++) {
+				w += rooms[i][j] + (j == rooms[i].length - 1 ? "": " ");
 			}
-			send("Name");
-			name = out.readLine();
-			for(int i = 0; i < roomList.size(); i++) {
-				send("Roomname " + i + " " + roomList.get(i));
-			}
-			for(int i = 0; i < weaponList.size(); i++) {
-				send("Weaponname " + weaponList.size() + " " + i + " " + weaponList.get(i));
-			}
-		} catch(IOException e) {
-			e.printStackTrace();
+			send(w);
+		}
+		send("Name");
+		name = readLine();
+		for(int i = 0; i < roomList.size(); i++) {
+			send("Roomname " + i + " " + roomList.get(i));
+		}
+		for(int i = 0; i < weaponList.size(); i++) {
+			send("Weaponname " + weaponList.size() + " " + i + " " + weaponList.get(i));
 		}
 	}
 	
@@ -85,18 +92,17 @@ public class Player {
 		send("Accusation " + player + " " + p + " " + w + " " + r);
 	}
 	
+	public void guess(int player, int p, int w, int r) {
+		send("Guess " + player + " " + p + " " + w + " " + r);
+	}
+	
 	public int disprove(int player, int p, int w, int r, boolean send) {
 		int re = -1;
 		if(send) {
-			try {
-				send("Disprove " + player + " " + p + " " + w + " " + r);
-				String in = out.readLine();
-				System.out.println(id + ": " + in);
-				String[] data = in.split(" "); // Disprove [-1, 0, 1, or 2]
-				re = Integer.parseInt(data[0]);
-			} catch(IOException e) {
-				e.printStackTrace();
-			}
+			send("Disprove " + player + " " + p + " " + w + " " + r);
+			String in = readLine();
+			String[] data = in.split(" "); // Disprove [-1, 0, 1, or 2]
+			re = Integer.parseInt(data[0]);
 		}
 		if(re == -1 && (decks[0].contains(p) || decks[1].contains(w) || decks[2].contains(r))) {
 			return -2;
@@ -122,59 +128,54 @@ public class Player {
 	
 	public int[] getMove(long time, int moves) {
 		int[] re = new int[0];
-		try {
-			send("Move " + time + " " + moves);
-			long start = System.nanoTime();
-			String in = out.readLine();
-			System.out.println(id + ": " + in);
-			if(System.nanoTime() - start > time)
-				return null;
-			if(in.startsWith("Accusation")) { // player weapon room
-				re = new int[4];
-				String[] data = in.split(" ");
-				for(int i = 0; i < data.length - 1; i++) {
-					try {
-						re[i] = Integer.parseInt(data[i + 1]);
-					} catch(Exception e) {
-						return null;
-					}
+		send("Move " + time + " " + moves);
+		long start = System.nanoTime();
+		String in = readLine();
+		if(System.nanoTime() - start > time)
+			return null;
+		if(in.startsWith("Accusation")) { // player weapon room
+			re = new int[4];
+			String[] data = in.split(" ");
+			for(int i = 0; i < data.length - 1; i++) {
+				try {
+					re[i] = Integer.parseInt(data[i + 1]);
+				} catch(Exception e) {
+					return null;
 				}
-				re[3] = 1;
-			} else if(in.startsWith("Move Guess")) { // y x player weapon room
-				re = new int[5];
-				String[] data = in.split(" ");
-				for(int i = 0; i < data.length - 2; i++) {
-					try {
-						re[i] = Integer.parseInt(data[i + 2]);
-					} catch(Exception e) {
-						e.printStackTrace();
-						return null;
-					}
-				}
-			} else if(in.startsWith("Move")) { // y x
-				re = new int[2];
-				String[] data = in.split(" ");
-				for(int i = 0; i < data.length - 1; i++) {
-					try {
-						re[i] = Integer.parseInt(data[i + 1]);
-					} catch(Exception e) {
-						return null;
-					}
-				}
-			} else if(in.startsWith("Guess")) { // player weapon room
-				re = new int[4];
-				String[] data = in.split(" ");
-				for(int i = 0; i < data.length - 1; i++) {
-					try {
-						re[i] = Integer.parseInt(data[i + 1]);
-					} catch(Exception e) {
-						return null;
-					}
-				}
-				re[3] = 0;
 			}
-		} catch(IOException e) {
-			e.printStackTrace();
+			re[3] = 1;
+		} else if(in.startsWith("Move Guess")) { // y x player weapon room
+			re = new int[5];
+			String[] data = in.split(" ");
+			for(int i = 0; i < data.length - 2; i++) {
+				try {
+					re[i] = Integer.parseInt(data[i + 2]);
+				} catch(Exception e) {
+					e.printStackTrace();
+					return null;
+				}
+			}
+		} else if(in.startsWith("Move")) { // y x
+			re = new int[2];
+			String[] data = in.split(" ");
+			for(int i = 0; i < data.length - 1; i++) {
+				try {
+					re[i] = Integer.parseInt(data[i + 1]);
+				} catch(Exception e) {
+					return null;
+				}
+			}
+		} else if(in.startsWith("Guess")) { // player weapon room
+			re = new int[4];
+			String[] data = in.split(" ");
+			for(int i = 0; i < data.length - 1; i++) {
+				try {
+					re[i] = Integer.parseInt(data[i + 1]);
+				} catch(Exception e) {
+					return null;
+				}
+			}
+			re[3] = 0;
 		}
 		return re;
 	}
